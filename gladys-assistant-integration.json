@@ -6,8 +6,8 @@
     "en": "Fujitsu air conditioners of the Airstage and FGLair apps: mode, setpoint, fan, swing, eco…",
     "fr": "Climatiseurs Fujitsu des applications Airstage et FGLair : mode, consigne, ventilation, éco…"
   },
-  "version": "0.1.0",
-  "docker_image": "ghcr.io/lm1lc3n7/gladys-fujitsu:0.1.0",
+  "version": "0.1.1",
+  "docker_image": "ghcr.io/lm1lc3n7/gladys-fujitsu:0.1.1",
   "gladys_version": ">=5.1.0",
   "cover_image": "https://raw.githubusercontent.com/LM1LC3N7/gladys-fujitsu/main/cover.png",
   "categories": ["climate"],

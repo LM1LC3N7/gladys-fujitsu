@@ -1,6 +1,6 @@
 {
   "name": "gladys-fujitsu",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Gladys Assistant external integration for the Fujitsu air conditioners and heat pumps of the Airstage and FGLair apps. Unofficial, not affiliated with Fujitsu General.",
   "type": "module",

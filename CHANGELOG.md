@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-16
+
 ### Added
 
 - Airstage cloud (Europe and United States): sign-in with the e-mail, password
@@ -35,4 +37,5 @@ the notes of the version's GitHub Release.
 - A refused password is never retried on its own; HTTP 429 waits what the
   service asks (up to one hour).
 
-[Unreleased]: https://github.com/LM1LC3N7/gladys-fujitsu/commits/main
+[Unreleased]: https://github.com/LM1LC3N7/gladys-fujitsu/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/LM1LC3N7/gladys-fujitsu/releases/tag/v0.1.1
