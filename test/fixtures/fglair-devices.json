@@ -1,0 +1,94 @@
+[
+  {
+    "device": {
+      "product_name": "AC000W000000001",
+      "model": "AY001MHP1",
+      "dsn": "AC000W000000001",
+      "oem_model": "AP-WA2E",
+      "sw_version": "ap-wa2e 1.0.12",
+      "template_id": 72516,
+      "mac": "a0c5f2112233",
+      "unique_hardware_id": null,
+      "lan_ip": "192.168.1.31",
+      "connected_at": "2026-10-16T07:58:12Z",
+      "key": 6011001,
+      "lan_enabled": true,
+      "has_properties": true,
+      "product_class": null,
+      "connection_status": "Online",
+      "lat": "48.85",
+      "lng": "2.35",
+      "locality": "75001",
+      "device_type": "Wifi"
+    }
+  },
+  {
+    "device": {
+      "product_name": "AC000W000000002",
+      "model": "AY001MHP1",
+      "dsn": "AC000W000000002",
+      "oem_model": "AP-WB1E",
+      "sw_version": "ap-wb1e 1.0.3",
+      "template_id": 72516,
+      "mac": "a0c5f2445566",
+      "unique_hardware_id": null,
+      "lan_ip": "192.168.1.32",
+      "connected_at": "2026-10-16T07:58:40Z",
+      "key": 6011002,
+      "lan_enabled": true,
+      "has_properties": true,
+      "product_class": null,
+      "connection_status": "Online",
+      "lat": "48.85",
+      "lng": "2.35",
+      "locality": "75001",
+      "device_type": "Wifi"
+    }
+  },
+  {
+    "device": {
+      "product_name": "AC000W000000003",
+      "model": "AY001MHP1",
+      "dsn": "AC000W000000003",
+      "oem_model": "AP-WF1E",
+      "sw_version": "ap-wf1e 1.1.0",
+      "template_id": 72516,
+      "mac": "a0c5f2778899",
+      "unique_hardware_id": null,
+      "lan_ip": "192.168.1.33",
+      "connected_at": "2026-10-01T18:02:00Z",
+      "key": 6011003,
+      "lan_enabled": true,
+      "has_properties": true,
+      "product_class": null,
+      "connection_status": "Offline",
+      "lat": "48.85",
+      "lng": "2.35",
+      "locality": "75001",
+      "device_type": "Wifi"
+    }
+  },
+  {
+    "device": {
+      "product_name": "Sharkiq",
+      "model": "RV1001AE",
+      "dsn": "AC000W999999999",
+      "oem_model": "RV1001AE",
+      "sw_version": "1.0",
+      "template_id": 1,
+      "mac": "a0c5f2000000",
+      "unique_hardware_id": null,
+      "lan_ip": "192.168.1.40",
+      "connected_at": "2026-10-16T07:00:00Z",
+      "key": 6019999,
+      "lan_enabled": false,
+      "has_properties": true,
+      "product_class": null,
+      "connection_status": "Online",
+      "lat": "48.85",
+      "lng": "2.35",
+      "locality": "75001",
+      "device_type": "Wifi"
+    }
+  }
+]

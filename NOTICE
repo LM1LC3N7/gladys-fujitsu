@@ -1,0 +1,62 @@
+gladys-fujitsu
+Copyright 2026 LM1LC3N7 and the gladys-fujitsu contributors
+
+This product is licensed under the Apache License, Version 2.0.
+
+It includes work ported from the following projects, under the MIT License
+reproduced below:
+
+- homebridge-fujitsu-airstage
+  https://github.com/PatrickStankard/homebridge-fujitsu-airstage
+  Copyright (c) 2024 Patrick Stankard
+  The Airstage cloud and LAN API (src/airstage/cloud/apiv1/client.js,
+  cloud/client.js, lan/api/client.js, lan/client.js, constants.js): paths,
+  bodies, headers of the adapter, parameter names and encodings, error codes,
+  the side effects of the dry and minimum heat modes. Ported in
+  src/airstage.js, src/airstageLocal.js and src/units.js.
+
+- pyairstage
+  https://github.com/danielkaldheim/pyairstage
+  Copyright (c) 2023 danielkaldheim
+  The extra Airstage parameters and positions (pyairstage/constants.py,
+  airstageAC.py), the adapter limits and HTTPS (airstageApi.py). Ported in
+  src/units.js and src/airstageLocal.js.
+
+- ayla-iot-unofficial
+  https://github.com/rewardone/ayla-iot-unofficial
+  Copyright (c) 2023 rewardone
+  The FGLair hosts and application ids, the Ayla calls, the Fujitsu
+  properties, capability bits, model types and temperature conversion
+  (src/ayla_iot_unofficial/const.py, fujitsu_consts.py, fujitsu_hvac.py,
+  ayla_iot_unofficial.py, device.py). Ported in src/fglair.js, src/units.js
+  and src/constants.js.
+
+- pyfujitseu (pyfujitsu)
+  https://github.com/Mmodarre/pyfujitsu
+  Copyright (c) 2018 Mmodarre
+  The economy, powerful and outdoor low-noise property names
+  (pyfujitseu/splitAC.py). Used in src/units.js.
+
+Read as documentation, nothing copied: ha_airstage (danielkaldheim, MIT),
+homebridge-fujitsu-hvac (Daniel Hyckenberg, MIT), fglair (npm, ISC), the Home
+Assistant `fujitsu_fglair` integration (Apache License 2.0).
+
+MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

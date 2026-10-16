@@ -1,0 +1,31 @@
+{
+  "model": {
+    "result": "OK",
+    "value": { "iu_model": "ASYG09KMTB" }
+  },
+  "state": {
+    "result": "OK",
+    "value": {
+      "iu_onoff": "1",
+      "iu_op_mode": "1",
+      "iu_fan_spd": "5",
+      "iu_set_tmp": "230",
+      "iu_indoor_tmp": "7510",
+      "iu_outdoor_tmp": "8120",
+      "iu_af_swg_vrt": "0",
+      "iu_af_dir_vrt": "1",
+      "iu_af_inc_vrt": "4",
+      "iu_af_swg_hrz": "0",
+      "iu_economy": "1",
+      "iu_powerful": "0",
+      "ou_low_noise": "0",
+      "iu_fan_ctrl": "0",
+      "iu_min_heat": "0",
+      "iu_err_code": "0"
+    }
+  },
+  "refused": {
+    "result": "NG",
+    "error": "0002"
+  }
+}

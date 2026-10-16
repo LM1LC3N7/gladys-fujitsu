@@ -1,240 +1,282 @@
+// -----------------------------------------------------------------------------
+// Unit -> Gladys device, its states, and the commands its features take.
+// -----------------------------------------------------------------------------
+
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  DEVICE_FEATURE_CATEGORIES,
-  DEVICE_FEATURE_TYPES,
-  DEVICE_POLL_FREQUENCIES,
-  DEVICE_TRANSPORTS,
-} from '@gladysassistant/integration-sdk';
+import { readFileSync } from 'node:fs';
 import { createFakeGladys } from '@gladysassistant/integration-sdk/testing';
 import {
-  DEVICE_BLUEPRINTS,
-  buildDiscoveredDevices,
-  buildTransportEntries,
-  createPoller,
-  findBlueprintByDevice,
-  identifyDevice,
-} from '../src/devices/index.js';
-import { simulateLanSession } from '../src/devices/plug.js';
-import { normalizeConfig } from '../src/config.js';
+  AC_FAN_SPEED,
+  AC_MODE,
+  AC_SWING_HORIZONTAL,
+  AC_SWING_VERTICAL,
+  DEVICE_TYPES,
+} from '../src/constants.js';
+import { buildDevice, changeOf, idsOf, statesOf, unitId } from '../src/devices.js';
+import { UnsupportedError } from '../src/http.js';
+import {
+  airstageParamsOf,
+  fglairPropsOf,
+  parseAirstage,
+  parseFglair,
+  supportedAirstage,
+  supportedFglair,
+} from '../src/units.js';
 
+const fixture = (name) =>
+  JSON.parse(readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf8'));
+const AIRSTAGE = fixture('airstage-devices.json').devices;
+const FGLAIR = fixture('fglair-properties.json');
 const gladys = createFakeGladys();
-const config = normalizeConfig();
 
-test('every blueprint exposes the required shape', () => {
-  for (const bp of DEVICE_BLUEPRINTS) {
-    assert.equal(typeof bp.key, 'string', 'key must be a string');
-    assert.equal(typeof bp.deviceExternalId, 'function', 'deviceExternalId must be a function');
-    assert.equal(typeof bp.buildDevice, 'function', 'buildDevice must be a function');
-  }
-});
-
-test('buildDiscoveredDevices returns one payload per blueprint', () => {
-  const devices = buildDiscoveredDevices(gladys, config);
-  assert.equal(devices.length, DEVICE_BLUEPRINTS.length);
-  for (const device of devices) {
-    assert.equal(typeof device.name, 'string');
-    assert.ok(device.external_id, 'each device has an external_id');
-    assert.ok(Array.isArray(device.features) && device.features.length > 0);
-  }
-});
-
-test('Gladys accepts the discovery payload', async () => {
-  // The SDK fake checks the payload like the host API does: external_id
-  // prefix, known category/type/unit, poll_frequency... A refusal is a 400
-  // for the WHOLE list, so no device would show up in the Discovery tab.
-  const fresh = createFakeGladys();
-  await fresh.publishDiscoveredDevices(buildDiscoveredDevices(fresh, config));
-  assert.equal(fresh.fake.discoveredDevices.length, DEVICE_BLUEPRINTS.length);
-});
-
-test('Gladys polls exactly the devices that implement onPoll', () => {
-  const frequencies = Object.values(DEVICE_POLL_FREQUENCIES);
-  for (const bp of DEVICE_BLUEPRINTS) {
-    const device = bp.buildDevice(gladys, config);
-    if (typeof bp.onPoll === 'function') {
-      assert.equal(device.should_poll, true, `${bp.key}: without should_poll, never polled`);
-      assert.ok(frequencies.includes(device.poll_frequency), `${bp.key}: invalid poll_frequency`);
-    } else {
-      assert.notEqual(device.should_poll, true, `${bp.key}: polled for nothing`);
-    }
-  }
-});
-
-test('the poller reads a device at the refresh interval of the config', async (t) => {
-  t.mock.timers.enable({ apis: ['Date'] });
-  const fresh = createFakeGladys();
-  const pollDevice = createPoller();
-  const plug = {
-    external_id: DEVICE_BLUEPRINTS.find((bp) => bp.key === 'plug').deviceExternalId(fresh),
+function airstageEntry(i) {
+  const params = airstageParamsOf(AIRSTAGE[i].parameters);
+  const id = AIRSTAGE[i].deviceId;
+  return {
+    entry: {
+      kind: DEVICE_TYPES.AIRSTAGE,
+      id,
+      name: AIRSTAGE[i].deviceName,
+      model: params.iu_model,
+      supported: supportedAirstage(params),
+      ids: idsOf(gladys, DEVICE_TYPES.AIRSTAGE, id),
+    },
+    fields: parseAirstage(params).fields,
   };
-  const everyFiveMinutes = normalizeConfig({ poll_frequency: 300 });
+}
 
-  assert.equal(await pollDevice(fresh, plug, everyFiveMinutes), true, 'the first poll reads');
-  for (let minute = 1; minute < 5; minute += 1) {
-    t.mock.timers.tick(DEVICE_POLL_FREQUENCIES.EVERY_MINUTES);
-    assert.equal(
-      await pollDevice(fresh, plug, everyFiveMinutes),
-      false,
-      `skipped at ${minute} min`,
-    );
-  }
-  // Gladys' tick may land a little early: the read is still due.
-  t.mock.timers.tick(DEVICE_POLL_FREQUENCIES.EVERY_MINUTES - 50);
-  assert.equal(await pollDevice(fresh, plug, everyFiveMinutes), true, 'read again at 5 min');
-});
-
-test('the poller retries a failed read at the next poll', async (t) => {
-  t.mock.timers.enable({ apis: ['Date'] });
-  const pollDevice = createPoller();
-  const station = {
-    external_id: DEVICE_BLUEPRINTS.find((bp) => bp.key === 'weather-station').deviceExternalId(
-      gladys,
-    ),
+function fglairEntry(dsn, modelType) {
+  const { props } = fglairPropsOf(FGLAIR[dsn]);
+  return {
+    entry: {
+      kind: DEVICE_TYPES.FGLAIR,
+      id: dsn,
+      name: props.device_name,
+      model: 'AP-WA2E',
+      modelType,
+      supported: supportedFglair(props, modelType),
+      ids: idsOf(gladys, DEVICE_TYPES.FGLAIR, dsn),
+    },
+    fields: parseFglair(props, modelType).fields,
   };
-  t.mock.method(globalThis, 'fetch', async () => {
-    throw new Error('network down');
-  });
-  await assert.rejects(pollDevice(gladys, station, config), /network down/);
+}
 
-  globalThis.fetch.mock.mockImplementation(async () => ({
-    ok: true,
-    json: async () => ({ current: { temperature_2m: 21.4, relative_humidity_2m: 55 } }),
-  }));
-  t.mock.timers.tick(DEVICE_POLL_FREQUENCIES.EVERY_MINUTES);
-  assert.equal(await pollDevice(gladys, station, config), true, 'not delayed by the failure');
-  assert.equal(gladys.fake.lastState(`${station.external_id}:temperature`), 21.4);
+const keysOf = (device) => device.features.map((f) => f.external_id.split(':').pop());
+const featureOf = (device, key) => device.features.find((f) => f.external_id.endsWith(`:${key}`));
+const statesMap = (entry, fields) => Object.fromEntries(statesOf(entry, fields));
+
+test('external ids: MAC or DSN, lowercase', () => {
+  assert.equal(unitId('E8FB1C123456'), 'e8fb1c123456');
+  assert.equal(unitId('AC000W000000001'), 'ac000w000000001');
+  assert.equal(unitId(' a b '), 'a-b');
+  assert.equal(unitId(''), 'unknown');
+  const { entry } = airstageEntry(0);
+  assert.equal(entry.ids.device, 'ext:test-integration:airstage:e8fb1c123456');
 });
 
-test('the poller ignores a device that has nothing to poll', async () => {
-  const pollDevice = createPoller();
-  const switchId = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'switch').deviceExternalId(gladys);
-  assert.equal(await pollDevice(gladys, { external_id: switchId }, config), false);
-  assert.equal(await pollDevice(gladys, { external_id: 'does-not-exist' }, config), false);
-});
-
-test('an idle plug publishes its 0 W once, then only as a heartbeat', async (t) => {
-  t.mock.timers.enable({ apis: ['Date'] });
-  const fresh = createFakeGladys();
-  const plug = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'plug');
-  await plug.onPoll(fresh, config);
-  await plug.onPoll(fresh, config);
-  assert.equal(fresh.fake.states.length, 1, 'an unchanged value is not sent again');
-  t.mock.timers.tick(30 * 60 * 1000);
-  await plug.onPoll(fresh, config);
-  assert.equal(fresh.fake.states.length, 2, 're-sent after 30 minutes');
-});
-
-test('device external_ids are unique across the catalog', () => {
-  const devices = buildDiscoveredDevices(gladys, config);
-  const ids = devices.map((d) => d.external_id);
-  assert.equal(new Set(ids).size, ids.length, 'no two devices may share an external_id');
-});
-
-test('findBlueprintByDevice routes an external_id back to its owner blueprint', () => {
-  for (const bp of DEVICE_BLUEPRINTS) {
-    const external_id = bp.deviceExternalId(gladys);
-    const found = findBlueprintByDevice(gladys, { external_id });
-    assert.equal(found, bp);
-  }
-});
-
-test('findBlueprintByDevice returns undefined for an unknown device', () => {
-  const found = findBlueprintByDevice(gladys, { external_id: 'does-not-exist' });
-  assert.equal(found, undefined);
-});
-
-test('manifest action keys are unique across blueprints', () => {
-  const keys = DEVICE_BLUEPRINTS.flatMap((bp) => Object.keys(bp.actions ?? {}));
-  assert.equal(new Set(keys).size, keys.length, 'no two blueprints may register the same action');
-});
-
-test('the camera declares a camera/image feature', () => {
-  const cameraBlueprint = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'camera');
-  const device = cameraBlueprint.buildDevice(gladys, config);
-  const imageFeature = device.features.find((f) => f.category === DEVICE_FEATURE_CATEGORIES.CAMERA);
-  assert.ok(imageFeature, 'the camera must carry a camera feature');
-  assert.equal(imageFeature.type, DEVICE_FEATURE_TYPES.CAMERA.IMAGE);
-  assert.equal(imageFeature.read_only, true);
-});
-
-test('onGetImage resolves a base64 JPEG under the 150 KB limit', async () => {
-  const cameraBlueprint = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'camera');
-  const image = await cameraBlueprint.onGetImage(gladys, {
-    device: { external_id: cameraBlueprint.deviceExternalId(gladys) },
-    config,
-  });
-  assert.match(image, /^image\/jpg;base64,/);
-  assert.ok(image.length <= 150 * 1024, 'the image must stay under 150 KB');
-});
-
-test('buildTransportEntries reports one valid entry per dual-channel device', () => {
-  const entries = buildTransportEntries(gladys, config);
-  assert.ok(entries.length > 0, 'the demo plug reports its transport');
-  const validValues = Object.values(DEVICE_TRANSPORTS);
-  for (const entry of entries) {
-    assert.ok(entry.external_id, 'each entry targets a device external_id');
-    assert.ok(validValues.includes(entry.transport), `invalid transport: ${entry.transport}`);
-  }
-});
-
-test('the demo plug honors the GLADYS_PREFER_LOCAL preference', () => {
-  const local = buildTransportEntries(gladys, normalizeConfig({ GLADYS_PREFER_LOCAL: true }));
-  const cloud = buildTransportEntries(gladys, normalizeConfig({ GLADYS_PREFER_LOCAL: false }));
-  const plugId = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'plug').deviceExternalId(gladys);
-  assert.equal(local.find((e) => e.external_id === plugId).transport, DEVICE_TRANSPORTS.LOCAL);
-  assert.equal(cloud.find((e) => e.external_id === plugId).transport, DEVICE_TRANSPORTS.CLOUD);
-});
-
-test('nominal transport entries never carry a leftover degraded flag', () => {
-  const entries = buildTransportEntries(gladys, config);
-  for (const entry of entries) {
-    assert.equal(entry.degraded, undefined, 'nominal entries must clear the degraded state');
-  }
-});
-
-test('the plug reports a degraded cloud fallback when the LAN session is refused', () => {
-  const plugId = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'plug').deviceExternalId(gladys);
-  simulateLanSession(false);
-  try {
-    const entries = buildTransportEntries(gladys, normalizeConfig({ GLADYS_PREFER_LOCAL: true }));
-    const entry = entries.find((e) => e.external_id === plugId);
-    assert.equal(entry.transport, DEVICE_TRANSPORTS.CLOUD, 'falls back to cloud');
-    assert.equal(entry.degraded, true, 'the fallback is flagged degraded');
-    assert.ok(entry.message.en, 'the reason carries at least the mandatory `en` text');
-    assert.ok(entry.message.en.length <= 200, 'tooltip messages are capped at 200 characters');
-  } finally {
-    simulateLanSession(true);
-  }
-});
-
-test('identifyDevice signals a device that implements identify', async () => {
-  const lightId = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'light').deviceExternalId(gladys);
-  const message = await identifyDevice(gladys, lightId, config);
-  assert.match(message.en, /signalling/);
-  assert.ok(message.fr, 'the message is multi-language');
-});
-
-test('identifyDevice explains when the device has no way to signal itself', async () => {
-  const weatherId = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'weather-station').deviceExternalId(
-    gladys,
+test('an Airstage unit with everything (4 vertical positions)', () => {
+  const { entry } = airstageEntry(0);
+  const device = buildDevice(entry, 'fr');
+  assert.equal(device.name, 'Salon');
+  assert.equal(device.model, 'fujitsu-airstage');
+  assert.deepEqual(device.params, [
+    { name: 'MAC_ADDRESS', value: 'E8:FB:1C:12:34:56' },
+    { name: 'MODEL', value: 'ASYG09KMTB' },
+  ]);
+  assert.deepEqual(keysOf(device), [
+    'binary',
+    'mode',
+    'target-temperature',
+    'fan-speed',
+    'swing-vertical',
+    'swing-horizontal',
+    'economy',
+    'powerful',
+    'outdoor-low-noise',
+    'energy-saving-fan',
+    'minimum-heat',
+    'indoor-temperature',
+    'outdoor-temperature',
+    'error-code',
+  ]);
+  const mode = featureOf(device, 'mode');
+  assert.deepEqual(
+    mode.supported_options.map((o) => [o.value, o.label]),
+    [
+      [AC_MODE.AUTO, 'Auto'],
+      [AC_MODE.COOLING, 'Froid'],
+      [AC_MODE.HEATING, 'Chaud'],
+      [AC_MODE.DRYING, 'Déshumidification'],
+      [AC_MODE.FAN, 'Ventilation'],
+    ],
   );
-  const message = await identifyDevice(gladys, weatherId, config);
-  assert.match(message.en, /no way to signal/);
+  assert.deepEqual(
+    featureOf(device, 'fan-speed').supported_options.map((o) => o.value),
+    [AC_FAN_SPEED.AUTO, AC_FAN_SPEED.QUIET, AC_FAN_SPEED.LOW, AC_FAN_SPEED.MID, AC_FAN_SPEED.HIGH],
+  );
+  const swing = featureOf(device, 'swing-vertical');
+  assert.deepEqual(
+    swing.supported_options.map((o) => o.value),
+    [0, 1, 2, 3, 4, 5],
+  );
+  assert.equal(swing.supported_options[2].label, 'Position 1 (haut)');
+  assert.equal(swing.supported_options[5].label, 'Position 4 (bas)');
+  assert.equal(swing.max, AC_SWING_VERTICAL.POSITION_4);
+  const setpoint = featureOf(device, 'target-temperature');
+  assert.deepEqual([setpoint.min, setpoint.max, setpoint.unit], [10, 30, 'celsius']);
+  assert.equal(featureOf(device, 'error-code').read_only, true);
+  assert.equal(featureOf(device, 'error-code').category, 'text');
+  assert.equal(featureOf(device, 'economy').category, 'switch');
+  assert.equal(featureOf(device, 'indoor-temperature').type, 'decimal');
+  assert.equal(buildDevice(entry, 'en').features[0].name, 'On/off');
 });
 
-test('the test_weather action returns a multi-language message', async () => {
-  const realFetch = globalThis.fetch;
-  globalThis.fetch = async () => ({
-    ok: true,
-    json: async () => ({ current: { temperature_2m: 21.4, relative_humidity_2m: 55 } }),
+test('an Airstage unit with 8 positions: the positions go to a select', () => {
+  const { entry } = airstageEntry(1);
+  const device = buildDevice(entry, 'en');
+  const keys = keysOf(device);
+  assert.ok(keys.includes('vertical-position'));
+  assert.ok(!keys.includes('swing-horizontal'));
+  assert.ok(!keys.includes('powerful'));
+  assert.ok(!keys.includes('outdoor-temperature'));
+  assert.deepEqual(
+    featureOf(device, 'swing-vertical').supported_options.map((o) => o.value),
+    [AC_SWING_VERTICAL.OFF, AC_SWING_VERTICAL.SWING],
+  );
+  const select = featureOf(device, 'vertical-position');
+  assert.deepEqual([select.category, select.type], ['text', 'select']);
+  assert.deepEqual(
+    select.supported_options.map((o) => o.value),
+    ['1', '2', '3', '4', '5', '6', '7', '8'],
+  );
+  assert.equal(select.supported_options[7].label, 'Position 8 (bottom)');
+  assert.equal(featureOf(device, 'target-temperature').min, 16);
+});
+
+test('the states of an Airstage unit', () => {
+  const { entry, fields } = airstageEntry(0);
+  assert.deepEqual(statesMap(entry, fields), {
+    binary: { state: 1 },
+    mode: { state: AC_MODE.HEATING },
+    'target-temperature': { state: 21.5 },
+    'fan-speed': { state: AC_FAN_SPEED.MID },
+    'swing-vertical': { state: AC_SWING_VERTICAL.POSITION_2 },
+    'swing-horizontal': { state: AC_SWING_HORIZONTAL.SWING },
+    economy: { state: 0 },
+    powerful: { state: 0 },
+    'outdoor-low-noise': { state: 0 },
+    'energy-saving-fan': { state: 0 },
+    'minimum-heat': { state: 0 },
+    'indoor-temperature': { state: 22.5 },
+    'outdoor-temperature': { state: 8.5 },
+    'error-code': { text: '0' },
   });
-  try {
-    const weatherStation = DEVICE_BLUEPRINTS.find((bp) => bp.key === 'weather-station');
-    const message = await weatherStation.actions.test_weather(gladys, { fields: {}, config });
-    assert.match(message.en, /21\.4/);
-    assert.match(message.fr, /21\.4/);
-  } finally {
-    globalThis.fetch = realFetch;
-  }
+  const swinging = statesMap(entry, { ...fields, swingVertical: true });
+  assert.deepEqual(swinging['swing-vertical'], { state: AC_SWING_VERTICAL.SWING });
+  const bedroom = airstageEntry(1);
+  const states = statesMap(bedroom.entry, bedroom.fields);
+  assert.deepEqual(states['swing-vertical'], { state: AC_SWING_VERTICAL.SWING });
+  assert.deepEqual(states['vertical-position'], { text: '3' });
+  assert.equal(states['outdoor-temperature'], undefined);
+  const stopped = statesMap(bedroom.entry, { ...bedroom.fields, swingVertical: false });
+  assert.deepEqual(stopped['swing-vertical'], { state: AC_SWING_VERTICAL.OFF });
+});
+
+test('an FGLair unit (A module) and its states', () => {
+  const { entry, fields } = fglairEntry('AC000W000000001', 'A');
+  const device = buildDevice(entry, 'en');
+  assert.equal(device.model, 'fujitsu-fglair');
+  assert.deepEqual(device.params, [
+    { name: 'DSN', value: 'AC000W000000001' },
+    { name: 'MODEL', value: 'AP-WA2E' },
+  ]);
+  assert.deepEqual(keysOf(device), [
+    'binary',
+    'mode',
+    'target-temperature',
+    'fan-speed',
+    'swing-vertical',
+    'swing-horizontal',
+    'economy',
+    'powerful',
+    'outdoor-low-noise',
+    'indoor-temperature',
+    'outdoor-temperature',
+  ]);
+  assert.deepEqual(statesMap(entry, fields), {
+    binary: { state: 1 },
+    mode: { state: AC_MODE.COOLING },
+    'target-temperature': { state: 23 },
+    'fan-speed': { state: AC_FAN_SPEED.AUTO },
+    'swing-vertical': { state: AC_SWING_VERTICAL.SWING },
+    'swing-horizontal': { state: AC_SWING_HORIZONTAL.OFF },
+    economy: { state: 0 },
+    powerful: { state: 0 },
+    'outdoor-low-noise': { state: 1 },
+    'indoor-temperature': { state: 22.5 },
+    'outdoor-temperature': { state: 8.5 },
+  });
+});
+
+test('an FGLair unit (B module): no room temperature, no quiet speed', () => {
+  const { entry, fields } = fglairEntry('AC000W000000002', 'B');
+  const device = buildDevice(entry, 'en');
+  assert.deepEqual(keysOf(device), [
+    'binary',
+    'mode',
+    'target-temperature',
+    'fan-speed',
+    'swing-vertical',
+  ]);
+  const states = statesMap(entry, fields);
+  assert.deepEqual(states.binary, { state: 0 });
+  assert.equal(states.mode, undefined, 'unknown while off');
+});
+
+test('commands -> changes', () => {
+  const { entry, fields } = airstageEntry(0);
+  assert.deepEqual(changeOf(entry, 'binary', 0, fields), { power: 'OFF' });
+  assert.deepEqual(changeOf(entry, 'binary', 1, fields), { power: 'ON' });
+  assert.deepEqual(changeOf(entry, 'mode', AC_MODE.DRYING, fields), { mode: 'DRY' });
+  assert.deepEqual(changeOf(entry, 'target-temperature', 20.2, fields), { setpoint: 20 });
+  assert.deepEqual(changeOf(entry, 'fan-speed', AC_FAN_SPEED.QUIET, fields), { fan: 'QUIET' });
+  assert.deepEqual(changeOf(entry, 'swing-vertical', AC_SWING_VERTICAL.SWING, fields), {
+    swingVertical: true,
+  });
+  assert.deepEqual(changeOf(entry, 'swing-vertical', AC_SWING_VERTICAL.POSITION_3, fields), {
+    verticalPosition: 3,
+  });
+  assert.deepEqual(changeOf(entry, 'swing-horizontal', AC_SWING_HORIZONTAL.OFF, fields), {
+    swingHorizontal: false,
+  });
+  assert.deepEqual(changeOf(entry, 'economy', 1, fields), { economy: true });
+  assert.deepEqual(changeOf(entry, 'minimum-heat', 0, fields), { minimumHeat: false });
+  const bedroom = airstageEntry(1);
+  assert.deepEqual(changeOf(bedroom.entry, 'vertical-position', '7', bedroom.fields), {
+    verticalPosition: 7,
+  });
+});
+
+test('commands the unit cannot take are refused with a message', () => {
+  const { entry, fields } = airstageEntry(0);
+  const refused = (key, value, pattern, f = fields, e = entry) =>
+    assert.throws(
+      () => changeOf(e, key, value, f),
+      (err) => err instanceof UnsupportedError && pattern.test(err.message),
+    );
+  refused('swing-vertical', AC_SWING_VERTICAL.POSITION_5, /unknown vertical swing/);
+  refused('fan-speed', AC_FAN_SPEED.TURBO, /no fan speed/);
+  refused('fan-speed', AC_FAN_SPEED.LOW_MID, /no fan speed Medium low/);
+  refused('target-temperature', 12, /between 16 and 30/);
+  refused('target-temperature', 22, /fan mode/, { ...fields, mode: 'FAN' });
+  refused('vertical-position', '2', /unknown vertical position/);
+  refused('indoor-temperature', 20, /cannot be controlled/);
+  refused('error-code', 'x', /cannot be controlled/);
+  const bedroom = airstageEntry(1);
+  refused('powerful', 1, /no Powerful setting/, bedroom.fields, bedroom.entry);
+  refused('swing-horizontal', 1, /no horizontal swing/, bedroom.fields, bedroom.entry);
+  refused('vertical-position', '9', /unknown vertical position/, bedroom.fields, bedroom.entry);
+  const cool = { ...entry, supported: { ...entry.supported, modes: ['COOL'] } };
+  refused('mode', AC_MODE.HEATING, /no Heat mode/, fields, cool);
 });

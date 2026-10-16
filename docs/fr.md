@@ -1,67 +1,142 @@
-# Template de démonstration
+# Fujitsu Airstage & FGLair (climatiseurs)
 
-Ceci est la documentation utilisateur de l'intégration. Gladys ré-héberge ce
-fichier et affiche un lien **Documentation** permanent vers lui dans l'écran
-de configuration (dans la langue de l'utilisateur, avec l'anglais en repli) —
-c'est au moment de configurer que l'utilisateur en a le plus besoin. Gardez
-les courtes indications d'accueil dans les blocs `section` du `config_schema`
-du manifest ; mettez ici le pas-à-pas détaillé (captures d'écran, dépannage…).
+Les climatiseurs et pompes à chaleur air-air Fujitsu avec Wi-Fi se pilotent
+avec l'une de deux applications Fujitsu : **Airstage** (l'actuelle, avec les
+appareils et adaptateurs Wi-Fi récents) ou **FGLair** (les anciens modules
+Wi-Fi, encore très répandus en Europe). Cette intégration amène dans Gladys
+les appareils de l'une ou l'autre : marche/arrêt, mode, consigne, ventilation,
+balayage, modes économie, puissance et unité extérieure silencieuse,
+températures intérieure et extérieure. Les appareils Airstage peuvent aussi
+être pilotés **en local**, par leur adaptateur Wi-Fi, sans le cloud.
+
+**Non officiel** : sans lien avec Fujitsu General.
+
+> **Version de développement (0.1).** Écrite à partir des projets que les
+> utilisateurs de Homebridge et de Home Assistant utilisent avec ces appareils
+> (voir Remerciements), et vérifiée sur leurs données ; pas encore testée avec
+> un vrai appareil ou un vrai compte Fujitsu. Vos retours sont les bienvenus
+> sur le dépôt GitHub.
+
+## Quels appareils
+
+| Votre application                      | À renseigner                                                            | Comment Gladys joint l'appareil                                            |
+| -------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| **FUJITSU AIRSTAGE** (Airstage Mobile) | le compte Airstage, et/ou l'adresse de l'adaptateur Wi-Fi de l'appareil | l'adaptateur sur votre réseau, ou le cloud Airstage (Europe ou États-Unis) |
+| **FGLair**                             | le compte FGLair                                                        | le cloud FGLair (Europe, ou les autres régions)                            |
+
+- Les deux applications peuvent servir en même temps : renseignez les deux
+  comptes.
+- **Non couverts** : les appareils Atlantic de l'application **Cozytouch**
+  (utilisez l'intégration Overkiz du store), et les appareils Fujitsu sans
+  Wi-Fi ou sur un autre contrôleur (KNX, Modbus, Intesis…).
 
 ## Ce que vous obtenez
 
-Six appareils de démonstration apparaissent après l'installation : une
-station météo (vraies données Open-Meteo), un interrupteur, une lampe
-variable, une prise connectée avec mesure de puissance, un détecteur de
-mouvement et une caméra.
+Un climatiseur Gladys par unité intérieure, avec les fonctionnalités que
+l'appareil possède (Fujitsu les indique : un réglage absent ne crée pas de
+fonctionnalité) :
 
-## Configuration
+| Fonctionnalité                      | Dans Gladys                                                               |
+| ----------------------------------- | ------------------------------------------------------------------------- |
+| Marche/arrêt                        | marche/arrêt du climatiseur                                               |
+| Mode                                | auto, froid, chaud, déshumidification, ventilation                        |
+| Consigne                            | 16 à 30 °C en chaud, 18 à 30 °C sinon, au demi-degré                      |
+| Ventilation                         | auto, silencieux, faible, moyenne, forte                                  |
+| Balayage vertical                   | arrêt, balayage, et les positions fixes (jusqu'à 4)                       |
+| Position verticale                  | position 1 (haut) à 6 ou 8 (bas), sur les appareils à 6 ou 8 positions    |
+| Balayage horizontal                 | arrêt, balayage                                                           |
+| Économie, Puissance (Powerful)      | interrupteurs                                                             |
+| Unité extérieure silencieuse        | interrupteur                                                              |
+| Ventilation économique              | interrupteur (Airstage)                                                   |
+| Hors-gel (10 °C)                    | interrupteur (Airstage) : chauffage à 10 °C pour que la pièce ne gèle pas |
+| Températures intérieure, extérieure | capteurs de température (°C)                                              |
+| Code d'erreur                       | texte, en lecture seule (Airstage)                                        |
 
-1. Ouvrez l'onglet **Configuration** de l'intégration.
-2. Renseignez la **latitude** et la **longitude** que la station météo de
-   démonstration doit observer (Paris par défaut), et choisissez votre unité
-   de température. L'**intervalle de rafraîchissement** règle la fréquence
-   de lecture de la station météo et de la puissance de la prise : toutes
-   les 5 minutes par défaut, toutes les minutes au plus.
-3. Enregistrez : les appareils apparaissent dans l'onglet **Découverte**,
-   prêts à être ajoutés.
+Comme dans les applications : la déshumidification met la ventilation en
+auto, une position verticale fixe arrête le balayage vertical, le hors-gel
+allume l'appareil en chaud à 10 °C (et l'éteint quand il s'arrête). Avec
+FGLair, choisir un mode allume aussi l'appareil, et l'allumer reprend son
+dernier mode.
 
-Le réglage **Préférer la connexion locale** pilote la prise de
-démonstration : elle affiche en badge le canal réellement utilisé (local ou
-cloud), avec un point orange quand elle fonctionne en mode dégradé (local
-refusé, bascule cloud).
+## Installation
 
-## Actions
+1. Vérifiez que vos appareils fonctionnent dans l'application Airstage ou
+   FGLair.
+2. Dans la configuration de l'intégration, renseignez ce que vous utilisez :
+   - **Application Airstage** : l'e-mail et le mot de passe de
+     l'application, la région (Europe pour un compte créé en Europe) et le
+     pays du compte, en anglais comme choisi dans l'application (`France`,
+     `Belgium`, `Switzerland`…).
+   - **Adaptateurs Wi-Fi Airstage** (facultatif) : une entrée par appareil,
+     séparées par des virgules : son adresse IP, son adresse MAC, et un nom si
+     vous voulez, par exemple `192.168.1.20 E8:FB:1C:12:34:56 Salon, 192.168.1.21 E8:FB:1C:65:43:21`.
+     Donnez à chaque adaptateur une adresse IP fixe dans votre box. L'adresse
+     MAC est sur l'étiquette de l'adaptateur et dans votre box ; pour un
+     appareil déjà trouvé par le cloud Airstage, elle figure aussi dans la page
+     de l'appareil dans Gladys. Les adaptateurs qui répondent en HTTPS sont
+     détectés tout seuls ; écrivez `https://192.168.1.20` pour l'imposer.
+   - **Application FGLair** : l'e-mail et le mot de passe de l'application,
+     et la région (Europe, ou les autres régions).
+3. Enregistrez, puis cliquez sur **Tester la connexion** : chaque compte liste
+   ses appareils, chaque adaptateur répond avec son modèle.
+4. Ouvrez l'onglet **Découverte** et ajoutez vos appareils.
 
-- **Tester le fournisseur météo** — effectue une requête en direct vers
-  Open-Meteo et affiche la température et l'humidité actuelles sous le
-  bouton.
-- **Identifier un appareil** — choisissez un de vos appareils dans la liste
-  et il se signale (la lampe de démonstration « clignote » dans les logs).
+## Options
 
-## Scènes
+| Option                             | Par défaut | Rôle                                                                                                                                           |
+| ---------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Région Airstage                    | Europe     | le cloud Airstage du compte (Europe, États-Unis)                                                                                               |
+| Pays du compte Airstage            | France     | envoyé à la connexion, comme le fait l'application                                                                                             |
+| Région FGLair                      | Europe     | le cloud FGLair du compte (Europe, autres régions)                                                                                             |
+| Langue des noms de fonctionnalités | Français   | noms des fonctionnalités et de leurs options                                                                                                   |
+| Privilégier la connexion locale    | activé     | réglage de Gladys : un appareil Airstage dont l'adaptateur est dans la liste passe par lui, le cloud en secours ; désactivé : le cloud d'abord |
 
-L'intégration ajoute ses propres cartes à l'éditeur de scènes (Gladys 5.1
-ou plus récent), dans la catégorie **Intégrations** :
+## Fonctionnement
 
-- **Mouvement détecté** (déclencheur) — lance la scène quand un détecteur
-  de démonstration voit bouger quelque chose. Choisissez éventuellement le
-  détecteur et ce qui a bougé (personne, animal) ; laissés vides, toute
-  détection correspond. Les actions suivantes peuvent lire ce qui a bougé
-  avec `{{triggerEvent.data.target}}`.
-- **Identifier un appareil** (action) — fait se signaler l'appareil choisi.
-  Elle indique si l'appareil a pu se signaler, pour que les actions
-  suivantes puissent en dépendre.
-
-## Tableau de bord
-
-Ajoutez le widget **État de la démo** à un tableau de bord : il affiche en
-direct la température de la station météo et la puissance de la prise du
-bureau, la connexion utilisée par la prise (en orange si dégradée) et la
-position observée. Son bouton **Identifier la lampe** fait se signaler la
-lampe de démonstration.
+- **Adaptateurs Airstage** : Gladys lit chaque adaptateur sur votre réseau
+  toutes les 30 secondes et lui envoie les commandes. Le conteneur de
+  l'intégration est sur un réseau bridge : les adaptateurs sont joints par
+  leur adresse IP (pas de découverte automatique).
+- **Cloud Airstage** : les appareils et tous leurs réglages sont lus toutes
+  les 2 minutes ; une commande part en requête que le cloud transmet à
+  l'appareil, et Gladys la suit jusqu'à ce que l'appareil l'ait prise.
+- **Cloud FGLair** : les réglages de chaque appareil sont lus toutes les
+  5 minutes, et quelques secondes après une commande. FGLair a aussi un mode
+  local, mais il faut que l'appareil rappelle Gladys, ce que le conteneur de
+  l'intégration ne peut pas recevoir.
+- Les connexions sont conservées dans le dossier `/data` de l'intégration :
+  un redémarrage de Gladys ne se reconnecte pas. Les mots de passe n'y sont
+  jamais écrits. Un mot de passe refusé n'est jamais réessayé tout seul :
+  corrigez-le et enregistrez.
+- Le badge de transport de chaque appareil indique **local** (par son
+  adaptateur), **cloud**, ou **injoignable**. Un point orange signale que
+  l'appareil passe par l'autre voie parce que la voie habituelle a échoué
+  (adaptateur injoignable, cloud en panne).
 
 ## Dépannage
 
-L'intégration journalise tout ce qu'elle fait : consultez les logs de
-l'intégration depuis l'interface Gladys (ou `docker logs` sur l'hôte) avec
-`LOG_LEVEL=debug` pour le détail complet.
+- **« l'e-mail ou le mot de passe a été refusé »** : vérifiez-les dans
+  l'application, ainsi que la région (un compte créé en Europe est sur le
+  cloud Europe), puis enregistrez.
+- **Un adaptateur est injoignable** : vérifiez son adresse IP (fixe dans
+  votre box), que Gladys et l'appareil sont sur le même réseau, et l'adresse
+  MAC : une MAC fausse fait répondre « NG 0002 » à l'adaptateur.
+- **Entrées d'adaptateurs non comprises** : chaque entrée doit avoir une
+  adresse IP (ou un nom d'hôte avec un point) et une adresse MAC.
+- **La consigne est refusée** : 16 à 30 °C en chaud, 18 à 30 °C dans les
+  autres modes ; elle ne se règle pas en mode ventilation.
+- **« trop de requêtes »** : le cloud ralentit Gladys ; elle réessaie après le
+  délai demandé par le cloud, jusqu'à une heure.
+
+## Remerciements
+
+Le protocole du cloud et des adaptateurs Airstage vient de
+[homebridge-fujitsu-airstage](https://github.com/PatrickStankard/homebridge-fujitsu-airstage)
+de Patrick Stankard (MIT) et de [pyairstage](https://github.com/danielkaldheim/pyairstage)
+de Daniel Rufus Kaldheim (MIT), la bibliothèque de l'intégration Home Assistant
+[ha_airstage](https://github.com/danielkaldheim/ha_airstage). Le protocole
+FGLair vient de [ayla-iot-unofficial](https://github.com/rewardone/ayla-iot-unofficial)
+(MIT), la bibliothèque de l'intégration Home Assistant `fujitsu_fglair`, et de
+[pyfujitseu](https://github.com/Mmodarre/pyfujitsu) (MIT), recoupés avec
+[homebridge-fujitsu-hvac](https://github.com/hycken/homebridge-fujitsu-hvac)
+(MIT). Voir le fichier NOTICE du dépôt.

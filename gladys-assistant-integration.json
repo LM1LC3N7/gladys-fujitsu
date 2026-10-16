@@ -1,177 +1,169 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Fujitsu Airstage & FGLair",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Fujitsu air conditioners of the Airstage and FGLair apps: mode, setpoint, fan, swing, eco…",
+    "fr": "Climatiseurs Fujitsu des applications Airstage et FGLair : mode, consigne, ventilation, éco…"
   },
-  "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "version": "0.1.0",
+  "docker_image": "ghcr.io/lm1lc3n7/gladys-fujitsu:0.1.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
+  "cover_image": "https://raw.githubusercontent.com/LM1LC3N7/gladys-fujitsu/main/cover.png",
+  "categories": ["climate"],
   "transports": ["local", "cloud"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Your Fujitsu air conditioners in Gladys",
+        "fr": "Vos climatiseurs Fujitsu dans Gladys"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "The Fujitsu air conditioners and air-to-air heat pumps of your Airstage app (newer units and Wi-Fi adapters) or FGLair app (older units) are offered in the Discovery tab: on/off, mode, setpoint, fan speed, vertical and horizontal swing, economy, powerful and outdoor low-noise modes, minimum heat, indoor and outdoor temperatures, error code, as the unit supports. Fill in the account of your app, and for Airstage units also the address of their Wi-Fi adapter to control them locally, without the cloud. Atlantic units of the Cozytouch app are covered by the Overkiz integration. Unofficial, not affiliated with Fujitsu General.",
+        "fr": "Les climatiseurs et pompes à chaleur air-air Fujitsu de votre application Airstage (appareils récents et adaptateurs Wi-Fi) ou FGLair (appareils plus anciens) sont proposés dans l'onglet Découverte : marche/arrêt, mode, consigne, ventilation, balayage vertical et horizontal, modes économie, puissance et unité extérieure silencieuse, hors-gel, températures intérieure et extérieure, code d'erreur, selon l'appareil. Renseignez le compte de votre application, et pour les appareils Airstage aussi l'adresse de leur adaptateur Wi-Fi pour les piloter en local, sans le cloud. Les appareils Atlantic de l'application Cozytouch relèvent de l'intégration Overkiz. Non officiel, sans lien avec Fujitsu General."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/LM1LC3N7/gladys-fujitsu/blob/main/docs/fr.md",
+          "label": { "en": "Guide (French)", "fr": "Guide (français)" }
+        },
+        {
+          "url": "https://github.com/LM1LC3N7/gladys-fujitsu/blob/main/docs/en.md",
+          "label": { "en": "Guide (English)", "fr": "Guide (anglais)" }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
+      "key": "airstage_section",
+      "type": "section",
+      "label": { "en": "Airstage app", "fr": "Application Airstage" },
       "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+        "en": "The e-mail and password of the Fujitsu Airstage app. Leave empty if you only use FGLair or the local adapters.",
+        "fr": "L'e-mail et le mot de passe de l'application Fujitsu Airstage. Laissez vide si vous n'utilisez que FGLair ou les adaptateurs en local."
+      }
     },
     {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
+      "key": "airstage_email",
+      "type": "string",
+      "label": { "en": "Airstage e-mail", "fr": "E-mail Airstage" },
+      "placeholder": { "en": "name@example.com", "fr": "nom@exemple.fr" },
+      "required": false
     },
     {
-      "key": "unit",
+      "key": "airstage_password",
+      "type": "secret",
+      "label": { "en": "Airstage password", "fr": "Mot de passe Airstage" },
+      "required": false
+    },
+    {
+      "key": "airstage_region",
       "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "label": { "en": "Airstage region", "fr": "Région Airstage" },
       "required": false,
-      "default": "celsius",
+      "default": "eu",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        { "value": "eu", "label": { "en": "Europe", "fr": "Europe" } },
+        { "value": "us", "label": { "en": "United States", "fr": "États-Unis" } }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "airstage_country",
+      "type": "string",
+      "label": { "en": "Country of the Airstage account", "fr": "Pays du compte Airstage" },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "In English, as chosen in the app (France, Belgium, Switzerland…).",
+        "fr": "En anglais, comme choisi dans l'application (France, Belgium, Switzerland…)."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "France"
+    },
+    {
+      "key": "local_section",
+      "type": "section",
+      "label": {
+        "en": "Airstage Wi-Fi adapters on the network",
+        "fr": "Adaptateurs Wi-Fi Airstage sur le réseau"
+      },
+      "description": {
+        "en": "Optional: Gladys then talks to the adapter directly on your network, faster and without the cloud. One entry per unit, separated by commas: its IP address, its MAC address, and a name if you want, for example \"192.168.1.20 E8:FB:1C:12:34:56 Living room\". Give the adapter a fixed IP address in your router. The MAC address is on the label of the adapter, in your router, or in the device page of Gladys for a unit found through the Airstage cloud.",
+        "fr": "Facultatif : Gladys parle alors directement à l'adaptateur sur votre réseau, plus vite et sans le cloud. Une entrée par appareil, séparées par des virgules : son adresse IP, son adresse MAC, et un nom si vous voulez, par exemple « 192.168.1.20 E8:FB:1C:12:34:56 Salon ». Donnez à l'adaptateur une adresse IP fixe dans votre box. L'adresse MAC est sur l'étiquette de l'adaptateur, dans votre box, ou dans la page de l'appareil dans Gladys pour un appareil trouvé par le cloud Airstage."
+      }
+    },
+    {
+      "key": "airstage_local_units",
+      "type": "string",
+      "label": { "en": "Adapters (IP MAC name, …)", "fr": "Adaptateurs (IP MAC nom, …)" },
+      "placeholder": {
+        "en": "192.168.1.20 E8:FB:1C:12:34:56 Living room",
+        "fr": "192.168.1.20 E8:FB:1C:12:34:56 Salon"
+      },
+      "required": false
+    },
+    {
+      "key": "fglair_section",
+      "type": "section",
+      "label": { "en": "FGLair app", "fr": "Application FGLair" },
+      "description": {
+        "en": "The e-mail and password of the Fujitsu FGLair app (older Wi-Fi modules). Leave empty if you only use Airstage.",
+        "fr": "L'e-mail et le mot de passe de l'application Fujitsu FGLair (anciens modules Wi-Fi). Laissez vide si vous n'utilisez qu'Airstage."
+      }
+    },
+    {
+      "key": "fglair_email",
+      "type": "string",
+      "label": { "en": "FGLair e-mail", "fr": "E-mail FGLair" },
+      "placeholder": { "en": "name@example.com", "fr": "nom@exemple.fr" },
+      "required": false
+    },
+    {
+      "key": "fglair_password",
+      "type": "secret",
+      "label": { "en": "FGLair password", "fr": "Mot de passe FGLair" },
+      "required": false
+    },
+    {
+      "key": "fglair_region",
+      "type": "select",
+      "label": { "en": "FGLair region", "fr": "Région FGLair" },
+      "required": false,
+      "default": "eu",
+      "options": [
+        { "value": "eu", "label": { "en": "Europe", "fr": "Europe" } },
+        {
+          "value": "default",
+          "label": {
+            "en": "Other regions (Americas, Asia, Oceania)",
+            "fr": "Autres régions (Amériques, Asie, Océanie)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of the feature names",
+        "fr": "Langue des noms de fonctionnalités"
+      },
+      "description": {
+        "en": "The names of the features and of the options (modes, fan speeds, positions) of the discovered devices.",
+        "fr": "Les noms des fonctionnalités et des options (modes, vitesses, positions) des appareils découverts."
+      },
+      "required": false,
+      "default": "fr",
+      "options": [
+        { "value": "fr", "label": { "en": "French", "fr": "Français" } },
+        { "value": "en", "label": { "en": "English", "fr": "Anglais" } }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
-    }
-  ],
-  "scene_triggers": [
-    {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
-      "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
-      },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
-        },
-        {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
-          "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
-          ]
-        }
-      ],
-      "variables": [
-        {
-          "key": "target",
-          "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
-        }
-      ]
-    }
-  ],
-  "scene_actions": [
-    {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
-      },
-      "timeout_seconds": 15,
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ],
-      "outputs": [
-        {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
-        }
-      ]
-    }
-  ],
-  "widgets": [
-    {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
-      },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "key": "test_connection",
+      "label": { "en": "Test the connection", "fr": "Tester la connexion" },
+      "timeout_seconds": 90
     }
   ]
 }

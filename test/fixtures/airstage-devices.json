@@ -1,0 +1,72 @@
+{
+  "devices": [
+    {
+      "deviceId": "E8FB1C123456",
+      "deviceName": "Salon",
+      "connectionStatus": "Online",
+      "isSubuser": false,
+      "parameters": [
+        { "name": "iu_model", "value": "ASYG09KMTB", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_onoff", "value": "1", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_op_mode", "value": "4", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_fan_spd", "value": "8", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_set_tmp", "value": "215", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_indoor_tmp", "value": "7250", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_outdoor_tmp", "value": "5850", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_af_swg_vrt", "value": "0", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_af_dir_vrt", "value": "2", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_af_inc_vrt", "value": "4", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_af_swg_hrz", "value": "1", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_af_dir_hrz", "value": "65535", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_economy", "value": "0", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_powerful", "value": "0", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "ou_low_noise", "value": "0", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_fan_ctrl", "value": "0", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_min_heat", "value": "0", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_err_code", "value": "0", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_hmn_det", "value": "65535", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_wifi_led", "value": "1", "modifiedAt": "2026-10-16T08:00:00Z" }
+      ]
+    },
+    {
+      "deviceId": "E8FB1C654321",
+      "deviceName": "Chambre",
+      "connectionStatus": "Online",
+      "isSubuser": false,
+      "parameters": [
+        { "name": "iu_model", "value": "ASYG12KETA", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_onoff", "value": "0", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_op_mode", "value": "1", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_fan_spd", "value": "0", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_set_tmp", "value": "240", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_indoor_tmp", "value": "7380", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_outdoor_tmp", "value": "65535", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_af_swg_vrt", "value": "1", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_af_dir_vrt", "value": "3", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_af_inc_vrt", "value": "8", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_af_swg_hrz", "value": "65535", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_af_dir_hrz", "value": "65535", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_economy", "value": "0", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_powerful", "value": "65535", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "ou_low_noise", "value": "65535", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_fan_ctrl", "value": "65535", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_min_heat", "value": "65535", "modifiedAt": "2026-10-16T08:00:00Z" },
+        { "name": "iu_err_code", "value": "0", "modifiedAt": "2026-10-16T08:00:00Z" }
+      ]
+    },
+    {
+      "deviceId": "E8FB1CABCDEF",
+      "deviceName": "Bureau",
+      "connectionStatus": "Offline",
+      "isSubuser": false,
+      "parameters": [
+        { "name": "iu_model", "value": "ASYG07KMCC", "modifiedAt": "2026-10-10T08:00:00Z" },
+        { "name": "iu_onoff", "value": "0", "modifiedAt": "2026-10-10T08:00:00Z" },
+        { "name": "iu_op_mode", "value": "0", "modifiedAt": "2026-10-10T08:00:00Z" },
+        { "name": "iu_fan_spd", "value": "0", "modifiedAt": "2026-10-10T08:00:00Z" },
+        { "name": "iu_set_tmp", "value": "200", "modifiedAt": "2026-10-10T08:00:00Z" },
+        { "name": "iu_indoor_tmp", "value": "65535", "modifiedAt": "2026-10-10T08:00:00Z" }
+      ]
+    }
+  ]
+}
