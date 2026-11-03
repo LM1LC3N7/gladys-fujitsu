@@ -127,7 +127,7 @@ dernier mode.
   autres modes ; elle ne se règle pas en mode ventilation.
 - **« trop de requêtes »** : le cloud ralentit Gladys ; elle réessaie après le
   délai demandé par le cloud, jusqu'à une heure.
-- **« HTTP 422 … t_device_feature.min ne peut pas être nul »** en ajoutant un
+- **« Valeur minimum : champ obligatoire non renseigné par l'intégration » (HTTP 422)** en ajoutant un
   appareil (versions 0.1.1 et antérieures) : Gladys refusait la liste
   « Position verticale » (appareils à 6 ou 8 positions) ou le « Code
   d'erreur » (Airstage), et avec eux tout l'appareil. Mettez l'intégration à
