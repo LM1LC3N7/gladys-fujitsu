@@ -20,9 +20,12 @@ import {
   fglairPropsOf,
   parseAirstage,
   parseFglair,
+  FAN_SPEEDS,
+  MODES,
   supportedAirstage,
   supportedFglair,
 } from '../src/units.js';
+import { assertCoreDevice } from './helpers/coreFeature.js';
 
 const fixture = (name) =>
   JSON.parse(readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf8'));
@@ -279,4 +282,77 @@ test('commands the unit cannot take are refused with a message', () => {
   refused('vertical-position', '9', /unknown vertical position/, bedroom.fields, bedroom.entry);
   const cool = { ...entry, supported: { ...entry.supported, modes: ['COOL'] } };
   refused('mode', AC_MODE.HEATING, /no Heat mode/, fields, cool);
+});
+
+// --- Every feature passes the Gladys model ------------------------------------
+
+const FLAGS = [
+  'swingVertical',
+  'swingHorizontal',
+  'economy',
+  'powerful',
+  'outdoorLowNoise',
+  'energySavingFan',
+  'minimumHeat',
+  'indoor',
+  'outdoor',
+  'errorCode',
+];
+
+/**
+ * Every capability set the module knows (units.js supportedAirstage and
+ * supportedFglair): each flag on or off, every count of vertical positions
+ * (0, 2 to 8: swing-vertical up to 5, the vertical-position select above),
+ * all or one mode and fan speed, on both kinds of unit; plus the fixtures.
+ */
+function* everyEntry() {
+  const kinds = [
+    [DEVICE_TYPES.AIRSTAGE, 'e8fb1c000000', 'AS-12'],
+    [DEVICE_TYPES.FGLAIR, 'ac000w000000009', null],
+  ];
+  for (const [kind, id, model] of kinds) {
+    for (let combo = 0; combo < 1 << FLAGS.length; combo += 1) {
+      for (const verticalPositions of [0, 2, 3, 4, 5, 6, 7, 8]) {
+        for (const [modes, fans] of [
+          [MODES, FAN_SPEEDS],
+          [['COOL'], ['AUTO']],
+        ]) {
+          const supported = { modes: [...modes], fans: [...fans], verticalPositions };
+          FLAGS.forEach((flag, i) => {
+            supported[flag] = Boolean(combo & (1 << i));
+          });
+          yield { kind, id, name: 'Unit', model, supported, ids: idsOf(gladys, kind, id) };
+        }
+      }
+    }
+  }
+  for (let i = 0; i < AIRSTAGE.length; i += 1) yield airstageEntry(i).entry;
+  for (const dsn of Object.keys(FGLAIR)) {
+    for (const modelType of ['A', 'B', 'F']) yield fglairEntry(dsn, modelType).entry;
+  }
+}
+
+test('every feature of every buildable unit has what the Gladys model needs', () => {
+  let devices = 0;
+  for (const entry of everyEntry()) {
+    for (const language of ['en', 'fr']) {
+      const where = `${entry.kind}/${JSON.stringify(entry.supported)}/${language}`;
+      assertCoreDevice(buildDevice(entry, language), where);
+      devices += 1;
+    }
+  }
+  assert.equal(devices, (2 * 1024 * 8 * 2 + AIRSTAGE.length + Object.keys(FGLAIR).length * 3) * 2);
+});
+
+test('the vertical-position list and the error code have min 0 and max 0, like the other text features of Gladys', () => {
+  const { entry } = airstageEntry(0);
+  const supported = { ...entry.supported, verticalPositions: 8, errorCode: true };
+  const device = buildDevice({ ...entry, supported }, 'fr');
+  for (const [key, type] of [
+    ['vertical-position', 'select'],
+    ['error-code', 'text'],
+  ]) {
+    const f = featureOf(device, key);
+    assert.deepEqual([f.category, f.type, f.min, f.max], ['text', type, 0, 0], key);
+  }
 });

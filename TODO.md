@@ -79,6 +79,15 @@ up to date at the end of every milestone.
 
 ## Decisions
 
+- **Text features carry min 0 and max 0** (2026-11-03): Gladys stores
+  `min`/`max` as not null for every feature, text/select and text/text
+  included (HTTP 422 and the whole unit refused otherwise; the SDK fake
+  Gladys does not check it). 0/0 like toshiba-ac and most text integrations.
+  test/devices.test.js checks every feature of every capability set against
+  the core model (test/helpers/coreFeature.js; the core's own lists and
+  normalizeSupportedOptions when its clone is on the machine).
+- **SDK 0.16** (2026-11-03): no `poll_frequency` on the devices, so Gladys 5.3
+  does not poll them.
 - **No duplicate** (checked 2026-10-16): the store index (433 entries,
   generated 2026-10-16T11:15Z) has no Fujitsu, Airstage or FGLair integration;
   the Gladys core (master 0027571, `server/services`) has none either (AC only

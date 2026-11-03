@@ -212,9 +212,14 @@ export function buildDevice(entry, language) {
     features.push(
       named(
         FEATURES.VERTICAL_POSITION,
+        // A text/select carries its value as text, but Gladys still needs a
+        // min and a max (not null in t_device_feature: HTTP 422 and the
+        // whole unit refused otherwise): 0 and 0, like the other text features.
         command({
           category: C.TEXT,
           type: T.TEXT.SELECT,
+          min: 0,
+          max: 0,
           keep_history: false,
           supported_options: sorted(options),
         }),
@@ -264,7 +269,10 @@ export function buildDevice(entry, language) {
   }
   if (supported.errorCode) {
     features.push(
-      named(FEATURES.ERROR, sensor({ category: C.TEXT, type: T.TEXT.TEXT, keep_history: false })),
+      named(
+        FEATURES.ERROR,
+        sensor({ category: C.TEXT, type: T.TEXT.TEXT, min: 0, max: 0, keep_history: false }),
+      ),
     );
   }
   const params =

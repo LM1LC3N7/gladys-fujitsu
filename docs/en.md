@@ -117,6 +117,12 @@ unit on, and turning it on goes back to its last mode.
   modes; it cannot be set in fan mode.
 - **"too many requests"**: the cloud slows Gladys down; it tries again after
   the delay the cloud asks for, up to one hour.
+- **"HTTP 422 … t_device_feature.min cannot be null"** when adding a unit
+  (versions 0.1.1 and earlier): Gladys refused the "Vertical position" list
+  (units with 6 or 8 positions) or the "Error code" (Airstage), and with it
+  the whole unit. Update the integration, then add the unit again from the
+  **Discovery** tab. Gladys saved nothing of the refused unit: there is
+  nothing to delete.
 
 ## Credits
 

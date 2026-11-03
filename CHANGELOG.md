@@ -10,6 +10,23 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+### Fixed
+
+- Adding a unit failed with "HTTP 422 … t_device_feature.min cannot be null":
+  the vertical position list (`text`/`select`, units with 6 or 8 positions)
+  and the error code (`text`/`text`, Airstage) had no `min` and `max`, which
+  Gladys requires, so Gladys refused the whole unit. They now have 0 and 0,
+  like the other text integrations, and a test checks every feature of every
+  device the module can build against the Gladys model. Gladys saves a device
+  in one transaction, so nothing of the refused unit was kept: update, then
+  add the unit again from the Discovery tab.
+
+### Changed
+
+- Integration SDK 0.16 (`^0.16.0`). The module sets no `poll_frequency`, so
+  Gladys 5.3 does not poll its devices. The test script stops a stuck test
+  after 60 s (`node --test --test-timeout=60000`).
+
 ## [0.1.1] - 2026-10-16
 
 ### Added
